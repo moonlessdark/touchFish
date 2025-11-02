@@ -21,7 +21,14 @@ class TaskDayWork(QtWidgets.QWidget):
         self.setFixedSize(550, 280)
         self.setStyleSheet("background-color: rgb(210, 234, 252);")
 
-        self.settings = QtCore.QSettings('./_internal/config.ini', QtCore.QSettings.defaultFormat().IniFormat)
+        confing_file: str = './_internal/config.ini'
+        logo_path = Path(confing_file)
+        if logo_path.exists():
+            image_path: str = confing_file
+        else:
+            image_path: str = './config.ini'
+
+        self.settings = QtCore.QSettings(image_path, QtCore.QSettings.defaultFormat().IniFormat)
 
         self.fish_money = 45.50
         self.days_until_friday = 0
@@ -192,12 +199,13 @@ class TaskDayWork(QtWidgets.QWidget):
     def create_cat_pixmap(self):
         """创建猫的插图 - 使用本地图片"""
         # 假设图片文件名为 cat.png，位于项目根目录
-        # logo_path = Path('/_internal/background.svg')
-        # if logo_path.exists():
-        #     image_path: str = '/_internal/background.svg'
-        # else:
-        #     image_path: str = 'background.svg'
-        image_path = "./_internal/background.svg"  # 修改为您的实际图片路径
+        logo_file: str = './_internal/background.svg'
+        logo_path = Path(logo_file)
+        if logo_path.exists():
+            image_path: str = logo_file
+        else:
+            image_path: str = './background.svg'
+        # image_path = "./_internal/background.svg"  # 修改为您的实际图片路径
 
         try:
             pixmap = QtGui.QPixmap(image_path)
