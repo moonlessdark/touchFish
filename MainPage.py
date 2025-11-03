@@ -19,7 +19,7 @@ class TaskDayWork(QtWidgets.QWidget):
 
         self.setWindowTitle("摸鱼之王")
         self.setFixedSize(550, 280)
-        self.setStyleSheet("background-color: rgb(210, 234, 252);")
+        self.setStyleSheet("background-color: rgb(237, 237, 236);")
 
         confing_file: str = './_internal/config.ini'
         logo_path = Path(confing_file)
