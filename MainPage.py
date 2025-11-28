@@ -324,6 +324,8 @@ class TaskDayWork(QtWidgets.QWidget):
         # 计算距离下一个星期五的天数
         if weekday < _until_next_day_off:  # 如果今天是星期一至星期四
             days_to_next_friday = _until_next_day_off - weekday
+        elif weekday == _until_next_day_off:  # 如果今天是星期五
+            days_to_next_friday = 0
         else:  # 如果今天是星期五或之后（包括周末）
             days_to_next_friday = (7-weekday) + _until_next_day_off
         return _until_next_day_off_str, days_to_next_friday
