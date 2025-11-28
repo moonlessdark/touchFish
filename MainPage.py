@@ -4,7 +4,8 @@ from datetime import datetime, date
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtCore import QTime
 from PySide6.QtGui import QIntValidator
-from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QStyle
+from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QStyle, \
+    QSystemTrayIcon, QMenu
 from dateutil.relativedelta import relativedelta
 import requests
 from requests import Response
@@ -18,8 +19,24 @@ class TaskDayWork(QtWidgets.QWidget):
         self.req = requests
 
         self.setWindowTitle("摸鱼之王")
-        self.setFixedSize(550, 280)
-        self.setStyleSheet("background-color: rgb(237, 237, 236);")
+        self.setFixedSize(480, 270)
+        # self.setStyleSheet("background-color: rgb(237, 237, 236);")
+
+        background_confing_file: str = './_internal/background.png'
+        logo_path = Path(background_confing_file)
+        if logo_path.exists():
+            background_confing_file: str = background_confing_file
+        else:
+            background_confing_file: str = './background.png'
+
+        pixmap = QtGui.QPixmap(background_confing_file)
+        scaled_pixmap = pixmap.scaled(self.size(),
+                                      QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                                      QtCore.Qt.TransformationMode.SmoothTransformation)
+        palette = self.palette()
+        palette.setBrush(QtGui.QPalette.ColorRole.Window, QtGui.QBrush(scaled_pixmap))
+        self.setPalette(palette)
+        self.setAutoFillBackground(True)
 
         confing_file: str = './_internal/config.ini'
         logo_path = Path(confing_file)
@@ -29,6 +46,12 @@ class TaskDayWork(QtWidgets.QWidget):
             image_path: str = './config.ini'
 
         self.settings = QtCore.QSettings(image_path, QtCore.QSettings.defaultFormat().IniFormat)
+
+        # 设置窗口属性（可选：使窗口不显示在任务栏）
+        self.setWindowFlags(QtCore.Qt.WindowType.Tool)
+
+        # 创建系统托盘
+        self.create_system_tray_icon()
 
         self.fish_money = 45.50
         self.days_until_friday = 0
@@ -124,7 +147,7 @@ class TaskDayWork(QtWidgets.QWidget):
         else:
             self.cat_image.setText("图片加载失败")
             self.cat_image.setStyleSheet("color: red; font-size: 14px;")
-        status_container.addWidget(self.cat_image)
+        # status_container.addWidget(self.cat_image)
 
         main_layout.addLayout(status_container)
 
@@ -138,7 +161,7 @@ class TaskDayWork(QtWidgets.QWidget):
             background-color: white;
             border-radius: 8px;
             padding: 8px;
-            margin: 5px;
+            margin: 3px;
         """)
 
         card_widget.setFixedWidth(100)
@@ -562,6 +585,43 @@ class TaskDayWork(QtWidgets.QWidget):
         dialog.setWindowTitle("提示")
         dialog.setText("操作成功！请重启程序!")
         dialog.exec()
+
+    def create_system_tray_icon(self):
+        """创建系统托盘图标"""
+        self.tray_icon = QSystemTrayIcon(self)
+
+        # 可以使用内置标准图标
+        self.tray_icon.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon))
+        # 或者使用自定义图标
+        # self.tray_icon.setIcon(QIcon(":/icons/app_icon.png"))
+
+        tray_menu = QMenu()
+        show_action = tray_menu.addAction("显示主窗口")
+        exit_action = tray_menu.addAction("退出")
+
+        show_action.triggered.connect(self.show_normal)
+        exit_action.triggered.connect(QApplication.instance().quit)
+
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.activated.connect(self.on_tray_activated)
+        self.tray_icon.show()
+
+    def on_tray_activated(self, reason):
+        """处理托盘图标点击"""
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            if self.isVisible() and not self.isMinimized():
+                self.hide()
+            else:
+                self.show_normal()
+
+    def show_normal(self):
+        """正常显示窗口"""
+        self.show()
+        if self.isMinimized():
+            self.setWindowState(QtCore.Qt.WindowState.WindowNoState)  # 恢复正常窗口状态
+        self.raise_()
+        self.activateWindow()
+        self.setFocus()  # 设置焦点到窗口
 
 
 if __name__ == '__main__':
